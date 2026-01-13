@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-13 (Multi-Author Support)
 
 ---
 
@@ -75,7 +75,8 @@
 {
   "_id": ObjectId,
   "title": String,              // Publication title
-  "author": String,             // Author name (references authors.name)
+  "authors": [String],          // Array of author names (references authors.name)
+  "author": String,             // DEPRECATED: Single author name (for backward compatibility)
   "category": String,           // e.g., "Evaporator", "Heat Exchanger"
   "publish_date": String,       // ISO format date string (YYYY-MM-DD)
   "pdf_filename": String,       // Filename in static/uploads/pdfs/
@@ -87,9 +88,11 @@
 }
 ```
 
+**Migration Note:** Publications with single `author` field are automatically migrated to `authors` array on app startup.
+
 **Indexes:**
-- Text index on `title`, `category`, `author` (for full-text search)
-- Regular indexes on `author`, `category`, `publish_date`, `created_at`
+- Text index on `title`, `category`, `authors` (for full-text search)
+- Regular indexes on `authors`, `category`, `publish_date`, `created_at`
 
 ### Collection: `authors`
 
@@ -254,24 +257,61 @@ WRDC_lib/
 
 ## Query Patterns
 
-### Enhanced Search
+### Enhanced Search (Multi-Author Support)
 ```python
-query = {}
+query_parts = []
+
 if search:
-    query['$or'] = [
-        {'title': {'$regex': search, '$options': 'i'}},
-        {'author': {'$regex': search, '$options': 'i'}},
-        {'category': {'$regex': search, '$options': 'i'}}
-    ]
-# Combine with filters using $and if needed
+    query_parts.append({
+        '$or': [
+            {'title': {'$regex': search, '$options': 'i'}},
+            {'authors': {'$regex': search, '$options': 'i'}},  # Search in authors array
+            {'author': {'$regex': search, '$options': 'i'}},  # Backward compatibility
+            {'category': {'$regex': search, '$options': 'i'}}
+        ]
+    })
+
+if author:
+    # Support both old format (author string) and new format (authors array)
+    query_parts.append({
+        '$or': [
+            {'authors': {'$in': [author]}},  # New format: author in array
+            {'author': author}  # Old format: exact match
+        ]
+    })
+
+# Combine query parts
+if len(query_parts) > 1:
+    query = {'$and': query_parts}
+elif len(query_parts) == 1:
+    query = query_parts[0]
 ```
 
-### Cached Aggregations
+### Cached Aggregations (Multi-Author)
 ```python
-# Authors list (cached 5 minutes)
+# Authors list with $unwind for array field (cached 5 minutes)
 authors = cache.get('authors_list')
 if authors is None:
-    authors = list(db.publications.aggregate([...]))
+    authors = list(db.publications.aggregate([
+        {"$project": {
+            "author": 1,
+            "authors": 1,
+            "all_authors": {
+                "$cond": {
+                    "if": {"$isArray": "$authors"},
+                    "then": "$authors",
+                    "else": {"$cond": {
+                        "if": {"$ne": ["$author", None]},
+                        "then": ["$author"],
+                        "else": []
+                    }}
+                }
+            }
+        }},
+        {"$unwind": "$all_authors"},
+        {"$group": {"_id": "$all_authors", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ]))
     cache.set('authors_list', authors, timeout=300)
 ```
 

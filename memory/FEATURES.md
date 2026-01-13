@@ -1,6 +1,6 @@
 # FEATURES.md
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-13 (Multi-Author Support)
 
 ---
 
@@ -12,13 +12,13 @@
 
 **Capabilities:**
 - Grid view of publications (3 columns, paginated)
-- Each card shows: cover image, title, author, category, publish date
+- Each card shows: cover image, title, **multiple authors with stacked avatars**, category, publish date
 - Click to view full PDF
 - 9 publications per page with pagination controls
 
 **Search & Filter Options:**
-- **Text Search:** Enhanced search across title, author, and category (case-insensitive regex)
-- **Author Filter:** Dropdown with publication counts per author
+- **Text Search:** Enhanced search across title, authors (array), and category (case-insensitive regex)
+- **Author Filter:** Dropdown with publication counts per author (supports multi-author publications)
 - **Category Filter:** Dropdown with publication counts per category
 - **Publish Date Filter:** Dropdown with all available dates
 - **Sort Options:** 
@@ -39,7 +39,7 @@
 - **Scroll Mode:** Traditional continuous single-page reading experience
 - **Professional Toolbar:** Gradient styling with navigation, zoom, and mode toggle controls
 - Publication metadata display in sidebar:
-  - Title, author with profile picture, category, publish date, view statistics
+  - Title, **multiple authors with stacked avatars and names**, category, publish date, view statistics
 - **Dual-Page Navigation:** Keyboard controls (arrow keys) and toolbar buttons
 - **Zoom Controls:** Smooth zoom in/out functionality
 - **Mode Toggle:** Switch between book and scroll viewing modes
@@ -117,7 +117,7 @@
 **Features:**
 - **Add Publication Form:**
   - Publication Title
-  - Author (with autocomplete from existing authors)
+  - **Authors (checkbox grid)** - Select one or more authors with profile pictures
   - Category
   - Publish Date
   - PDF File upload
@@ -153,11 +153,13 @@
 
 **List Publications** (`/admin/publications`):
 - Table view of all publications
+- Shows comma-separated author names for multi-author publications
 - Pagination (20 per page)
 - Edit and Delete buttons for each publication
 
 **Edit Publication** (`/admin/edit_publication/<id>`):
-- Edit all publication fields
+- Edit all publication fields including multiple authors
+- Checkbox grid with pre-selected authors
 - Optional file replacement (PDF and cover)
 - If files not provided, keeps existing files
 

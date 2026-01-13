@@ -1,6 +1,6 @@
 # CONVENTIONS.md
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-13 (Multi-Author Support)
 
 ---
 
@@ -60,15 +60,23 @@ def add_publication():
     # 1. Authentication checked by decorator
     # 2. Get form data
     title = request.form.get('title')
+    authors = request.form.getlist('authors')  # Get list for multi-select
     pdf = request.files.get('pdf')
     
-    # 3. Validate files
+    # 3. Validate required fields
+    if not authors or len(authors) == 0:
+        flash('Please select at least one author')
+        return redirect(url_for('admin.add_content_page'))
+    
+    # 4. Validate files
     if not pdf or pdf.filename == '':
         flash('Please select a file')
         return redirect(url_for('admin.add_content_page'))
     
-    # 4. Process and save
-    # 5. Redirect based on user role
+    # 5. Process and save (authors is already a list)
+    Publication.create(db, title, authors, category, publish_date, pdf_filename, cover_filename)
+    
+    # 6. Redirect based on user role
     user = get_current_user(db)
     if user.get('role') in ['admin', 'editor']:
         return redirect(url_for('admin.publications'))
@@ -180,23 +188,42 @@ if file and allowed_file(file.filename):
 
 ## Model Pattern
 
-**Model Class Structure:**
+**Model Class Structure (Multi-Author Support):**
 ```python
 class Publication:
     """Publication model"""
     
     @staticmethod
-    def create(db, title, author, category, publish_date, pdf_filename, cover_filename):
-        """Create a new publication"""
+    def create(db, title, authors, category, publish_date, pdf_filename, cover_filename):
+        """Create a new publication
+        
+        Args:
+            authors: List of author names (can be single-item list for backward compatibility)
+        """
+        # Ensure authors is a list
+        if isinstance(authors, str):
+            authors = [authors]
+        elif not isinstance(authors, list):
+            authors = list(authors) if authors else []
+        
         publication = {
             'title': title,
-            'author': author,
+            'authors': authors,  # Array of author names
             # ... other fields
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
         result = db.publications.insert_one(publication)
         return result.inserted_id
+    
+    @staticmethod
+    def get_authors_display(publication):
+        """Get formatted authors display list (handles both old and new format)"""
+        if 'authors' in publication and isinstance(publication['authors'], list):
+            return publication['authors']
+        elif 'author' in publication:
+            return [publication['author']]  # Backward compatibility
+        return []
     
     @staticmethod
     def get_by_id(db, publication_id):
@@ -284,21 +311,42 @@ url_for('admin.edit_publication', publication_id=pub_id)
 
 ## Data Aggregation Pattern
 
-**MongoDB Aggregation Pipeline:**
+**MongoDB Aggregation Pipeline (Multi-Author Support):**
 ```python
 from utils.db import get_db
 
 db = get_db()
 
-# Group and count pattern
+# Group and count pattern for authors array (with $unwind)
 results = list(db.publications.aggregate([
-    {"$group": {"_id": "$author", "count": {"$sum": 1}}},
+    {"$project": {
+        "author": 1,
+        "authors": 1,
+        "all_authors": {
+            "$cond": {
+                "if": {"$isArray": "$authors"},
+                "then": "$authors",
+                "else": {"$cond": {
+                    "if": {"$ne": ["$author", None]},
+                    "then": ["$author"],
+                    "else": []
+                }}
+            }
+        }
+    }},
+    {"$unwind": "$all_authors"},
+    {"$group": {"_id": "$all_authors", "count": {"$sum": 1}}},
     {"$sort": {"_id": 1}}
 ]))
 
-# Filter and group pattern
+# Filter by author (supports both old and new format)
 results = list(db.publications.aggregate([
-    {"$match": {"author": author_name}},
+    {"$match": {
+        "$or": [
+            {"authors": {"$in": [author_name]}},
+            {"author": author_name}
+        ]
+    }},
     {"$group": {"_id": "$category", "count": {"$sum": 1}}},
     {"$sort": {"_id": 1}}
 ]))
@@ -443,6 +491,46 @@ session.clear()
 
 ---
 
+## Multi-Author Form Pattern
+
+**Checkbox Grid Template:**
+```html
+<div class="form-group">
+    <label>Authors <span class="text-danger">*</span> <small class="text-muted">(select one or more)</small></label>
+    <div class="author-checkbox-grid">
+        {% for author in authors %}
+        <div class="author-checkbox-item">
+            <input type="checkbox" name="authors" value="{{ author.name }}" id="author_{{ loop.index }}">
+            <label for="author_{{ loop.index }}">
+                {% if author.image %}
+                <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" 
+                     class="author-thumb" alt="{{ author.name }}">
+                {% endif %}
+                <span>{{ author.name }}</span>
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+```
+
+**Display Stacked Avatars:**
+```html
+{% set authors_list = publication.get('authors_list', []) %}
+{% if not authors_list and publication.get('author') %}
+    {% set authors_list = [publication.author] %}
+{% endif %}
+<div class="author-stack">
+    {% for author_name in authors_list %}
+        {% if publication.get('author_images', {}).get(author_name) %}
+        <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_images[author_name]) }}" 
+             class="author-avatar-small" alt="{{ author_name }}">
+        {% endif %}
+    {% endfor %}
+</div>
+<div class="author-names">{{ authors_list | join(', ') }}</div>
+```
+
 ## Error Handling Pattern
 
 **Flash Messages:**
@@ -454,6 +542,7 @@ flash('Publication added successfully!')
 
 # Error
 flash('Publication not found')
+flash('Please select at least one author')
 flash('You do not have permission to access this page')
 
 # In template

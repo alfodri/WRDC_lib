@@ -76,7 +76,17 @@
                             <div class="font-weight-bold text-dark">{{ publication.title }}</div>
                             <small class="text-muted">{{ publication.pdf_filename }}</small>
                         </td>
-                        <td>{{ publication.author }}</td>
+                        <td>
+                            {% set authors_list = publication.get('authors', []) %}
+                            {% if not authors_list and publication.get('author') %}
+                                {% set authors_list = [publication.author] %}
+                            {% endif %}
+                            {% if authors_list %}
+                                {{ authors_list | join(', ') }}
+                            {% else %}
+                                {{ publication.get('author', 'Unknown') }}
+                            {% endif %}
+                        </td>
                         <td><span class="badge badge-light px-3 py-2 rounded-pill">{{ publication.category }}</span></td>
                         <td>{{ publication.publish_date | format_date }}</td>
                         <td class="text-right">

@@ -6,6 +6,39 @@
 
 ## Session History
 
+### Session: 2026-01-13 (Multi-Author Publication Support)
+**Agent:** Claude
+**Changes Made:**
+- **Database Schema Update:** Changed publications from single `author` string to `authors` array field
+- **Form Redesign:** Replaced single author input with checkbox grid selection in add/edit publication forms
+- **UI Enhancement:** Implemented stacked avatar display for multiple authors on publication cards and PDF viewer
+- **Backward Compatibility:** Added migration function to convert existing single-author publications to authors array
+- **Query Updates:** Updated all search/filter queries to support authors array with `$unwind` aggregations
+- **Model Updates:** Updated Publication model to handle authors array with backward compatibility helpers
+- **API Updates:** Updated REST API endpoints to support both `author` (backward compat) and `authors` array
+
+**Files Modified:**
+- `models/publication.py` - Added authors array support, helper methods
+- `templates/admin/add_content.html` - Checkbox grid for author selection
+- `templates/admin/edit_publication.html` - Checkbox grid with pre-selection
+- `templates/index.html` - Stacked avatars display
+- `templates/view_pdf.html` - Multiple authors with avatars in sidebar
+- `templates/admin/publications.html` - Comma-separated author display
+- `routes/admin.py` - Handle multiple authors from forms
+- `routes/main.py` - Updated search/filter queries for authors array
+- `routes/api.py` - API support for authors array
+- `app.py` - Added migration function
+
+**Notes:**
+- All existing publications with single author are automatically migrated on app startup
+- Forms use checkbox grid with author avatars for better UX
+- Publication cards show stacked avatars for multiple authors
+- PDF viewer displays all authors with their profile pictures
+- Search and filters work seamlessly with both old and new format
+- No data loss - original author preserved as first element in array
+
+---
+
 ### Session: 2026-01-13 (Enhanced PDF Book Viewer)
 **Agent:** Claude
 **Changes Made:**
@@ -272,6 +305,7 @@
 - Publication browsing with enhanced search/filter
 - **PDF viewing with dual-page book mode and scroll mode**
 - **Author profiles with modern card layouts and comprehensive stats**
+- **Multi-author support for publications (checkbox selection, stacked avatars)**
 - Add content (publications/authors) for all logged-in users
 - Edit/delete publications (editors/admins)
 - Edit/delete authors (editors/admins)
@@ -287,11 +321,12 @@
 - **Smart category selection with datalist suggestions**
 - **Professional admin interface with unified design**
 - **Responsive design optimized for PC and mobile**
+- **Automatic migration from single author to authors array**
 
 ### Database Collections
-1. **publications** - Enhanced with timestamps and counters
+1. **publications** - Enhanced with timestamps, counters, and **authors array** (supports multiple authors per publication)
 2. **authors** - Enhanced with timestamps
-3. **users** - NEW: User accounts with roles and favorites
+3. **users** - User accounts with roles and favorites
 
 ### File Structure
 ```
@@ -323,6 +358,13 @@ Codebase is now modular with:
 ---
 
 ## Recent Changes Log
+
+**2026-01-13 (Multi-Author Publication Support):**
+- Changed database schema from single author to authors array.
+- Redesigned forms with checkbox grid for author selection.
+- Implemented stacked avatar displays throughout the application.
+- Added automatic migration for existing publications.
+- Updated all queries and aggregations to support authors array.
 
 **2026-01-13 (Automated Cover & Admin Redesign):**
 - Integrated PyMuPDF for automated cover extraction from PDF first pages.
@@ -416,6 +458,8 @@ Codebase is now modular with:
 - ✅ Admin dashboard and all management pages redesigned.
 - ✅ Full template inheritance system (`base.html`).
 - ✅ All admin features now have a modern "pro" aesthetic.
+- ✅ Multi-author publication support with checkbox selection and stacked avatars.
+- ✅ Automatic migration from single author to authors array.
 
 **Remaining Work:**
 - Update auth templates (login, register) to extend `base.html`.

@@ -66,19 +66,23 @@ def add_publication():
     db = get_db()
     
     title = request.form.get('title')
-    author = request.form.get('author')
+    authors = request.form.getlist('authors')  # Get list of selected authors
     category = request.form.get('category')
     publish_date = request.form.get('publish_date')
     pdf = request.files.get('pdf')
     cover = request.files.get('cover')
 
-    if not all([title, author, category, publish_date, pdf]):
-        flash('Publication title, author, category, publish_date, and PDF are required')
-        return redirect(url_for('admin.dashboard'))
+    if not all([title, authors, category, publish_date, pdf]):
+        flash('Publication title, at least one author, category, publish_date, and PDF are required')
+        return redirect(url_for('admin.add_content_page'))
+
+    if not authors or len(authors) == 0:
+        flash('Please select at least one author')
+        return redirect(url_for('admin.add_content_page'))
 
     if pdf.filename == '':
         flash('Please select a PDF file')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('admin.add_content_page'))
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
@@ -104,13 +108,12 @@ def add_publication():
             else:
                 cover_filename = "default_cover.jpg" # Fallback if generation fails
 
-        Publication.create(db, title, author, category, publish_date, pdf_filename, cover_filename)
+        Publication.create(db, title, authors, category, publish_date, pdf_filename, cover_filename)
         flash('Publication added successfully!')
     else:
         flash('Invalid file type')
 
     # Redirect based on user role
-    db = get_db()
     user = get_current_user(db)
     if user and user.get('role') in ['admin', 'editor']:
         return redirect(url_for('admin.publications'))
@@ -129,15 +132,19 @@ def edit_publication(publication_id):
     
     if request.method == 'POST':
         title = request.form.get('title')
-        author = request.form.get('author')
+        authors = request.form.getlist('authors')  # Get list of selected authors
         category = request.form.get('category')
         publish_date = request.form.get('publish_date')
         pdf = request.files.get('pdf')
         cover = request.files.get('cover')
         
+        if not authors or len(authors) == 0:
+            flash('Please select at least one author')
+            return redirect(url_for('admin.edit_publication', publication_id=publication_id))
+        
         update_data = {
             'title': title,
-            'author': author,
+            'authors': authors,
             'category': category,
             'publish_date': publish_date
         }

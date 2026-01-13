@@ -49,12 +49,34 @@ def get_publications():
     category = request.args.get('category')
     
     query = {}
+    query_parts = []
+    
     if search:
-        query['title'] = {'$regex': search, '$options': 'i'}
+        query_parts.append({
+            '$or': [
+                {'title': {'$regex': search, '$options': 'i'}},
+                {'authors': {'$regex': search, '$options': 'i'}},
+                {'author': {'$regex': search, '$options': 'i'}}  # Backward compatibility
+            ]
+        })
+    
     if author:
-        query['author'] = author
+        # Support both old format (author string) and new format (authors array)
+        query_parts.append({
+            '$or': [
+                {'authors': {'$in': [author]}},
+                {'author': author}
+            ]
+        })
+    
     if category:
-        query['category'] = category
+        query_parts.append({'category': category})
+    
+    # Combine all query parts
+    if len(query_parts) > 1:
+        query = {'$and': query_parts}
+    elif len(query_parts) == 1:
+        query = query_parts[0]
     
     skip = (page - 1) * per_page
     publications = list(db.publications.find(query).skip(skip).limit(per_page))
@@ -107,16 +129,30 @@ def create_publication(current_user):
         return jsonify({'status': 'error', 'message': 'Permission denied'}), 403
     
     data = request.json
-    required_fields = ['title', 'author', 'category', 'publish_date']
+    # Support both 'author' (single) and 'authors' (array) for backward compatibility
+    if 'authors' not in data and 'author' not in data:
+        return jsonify({'status': 'error', 'message': 'Missing required field: author or authors'}), 400
     
+    required_fields = ['title', 'category', 'publish_date']
     if not all(field in data for field in required_fields):
         return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+    
+    # Get authors - prefer 'authors' array, fallback to 'author' string
+    authors = data.get('authors', [])
+    if not authors and 'author' in data:
+        authors = [data['author']]
+    if not isinstance(authors, list):
+        authors = [authors] if authors else []
+    
+    # Validate authors
+    if not authors or len(authors) == 0:
+        return jsonify({'status': 'error', 'message': 'At least one author is required'}), 400
     
     db = get_db()
     publication_id = Publication.create(
         db,
         data['title'],
-        data['author'],
+        authors,
         data['category'],
         data['publish_date'],
         data.get('pdf_filename', ''),
@@ -239,7 +275,8 @@ def search():
         query = {
             "$or": [
                 {"title": {"$regex": query_text, "$options": "i"}},
-                {"author": {"$regex": query_text, "$options": "i"}},
+                {"authors": {"$regex": query_text, "$options": "i"}},
+                {"author": {"$regex": query_text, "$options": "i"}},  # Backward compatibility
                 {"category": {"$regex": query_text, "$options": "i"}}
             ]
         }

@@ -16,27 +16,66 @@ def index():
     page = int(request.args.get('page', 1))
     per_page = 9
     
+    # Handle sort field - if sorting by author, use authors array (MongoDB sorts by first element)
+    # For backward compatibility, also check author field
+    if sort == 'author':
+        # MongoDB will sort by first element of array, or fallback to author field
+        sort = [('authors', 1), ('author', 1)]
+    
     query = {}
+    query_parts = []
+    
     # Enhanced search: Use regex for now (text search requires proper setup)
     if search:
-        query['$or'] = [
-            {'title': {'$regex': search, '$options': 'i'}},
-            {'author': {'$regex': search, '$options': 'i'}},
-            {'category': {'$regex': search, '$options': 'i'}}
-        ]
+        search_query = {
+            '$or': [
+                {'title': {'$regex': search, '$options': 'i'}},
+                {'authors': {'$regex': search, '$options': 'i'}},  # Search in authors array
+                {'author': {'$regex': search, '$options': 'i'}},  # Backward compatibility
+                {'category': {'$regex': search, '$options': 'i'}}
+            ]
+        }
+        query_parts.append(search_query)
+    
     if author:
-        query['author'] = author
+        # Support both old format (author string) and new format (authors array)
+        author_query = {
+            '$or': [
+                {'authors': {'$in': [author]}},  # New format: author in array
+                {'author': author}  # Old format: exact match
+            ]
+        }
+        query_parts.append(author_query)
+    
+    # Add simple filters
     if category:
-        query['category'] = category
+        query_parts.append({'category': category})
+    
     if publish_date:
-        query['publish_date'] = publish_date
+        query_parts.append({'publish_date': publish_date})
     
-    # If we have both search ($or) and filters, combine them
-    if '$or' in query and len([k for k in query.keys() if k != '$or']) > 0:
-        filters = {k: v for k, v in query.items() if k != '$or'}
-        query = {'$and': [{'$or': query['$or']}, filters]}
+    # Combine all query parts
+    if len(query_parts) > 1:
+        query = {'$and': query_parts}
+    elif len(query_parts) == 1:
+        query = query_parts[0]
     
-    publications = db.publications.find(query).sort(sort).skip((page - 1) * per_page).limit(per_page)
+    publications_cursor = db.publications.find(query).sort(sort).skip((page - 1) * per_page).limit(per_page)
+    publications = []
+    for pub in publications_cursor:
+        # Get authors list (handle both old and new format)
+        authors_list = Publication.get_authors_display(pub)
+        pub['authors_list'] = authors_list
+        
+        # Get author images for all authors
+        author_images = {}
+        for author_name in authors_list:
+            author_info = Author.get_by_name(db, author_name)
+            if author_info and author_info.get('image'):
+                author_images[author_name] = author_info['image']
+        pub['author_images'] = author_images
+        publications.append(pub)
+    
     total_publications = db.publications.count_documents(query)
     total_pages = (total_publications + per_page - 1) // per_page
 
@@ -45,8 +84,25 @@ def index():
         cache = current_app.cache
         authors = cache.get('authors_list')
         if authors is None:
+            # Unwind authors array to get individual authors, handle both old and new format
             authors = list(db.publications.aggregate([
-                {"$group": {"_id": "$author", "count": {"$sum": 1}}},
+                {"$project": {
+                    "author": 1,
+                    "authors": 1,
+                    "all_authors": {
+                        "$cond": {
+                            "if": {"$isArray": "$authors"},
+                            "then": "$authors",
+                            "else": {"$cond": {
+                                "if": {"$ne": ["$author", None]},
+                                "then": ["$author"],
+                                "else": []
+                            }}
+                        }
+                    }
+                }},
+                {"$unwind": "$all_authors"},
+                {"$group": {"_id": "$all_authors", "count": {"$sum": 1}}},
                 {"$sort": {"_id": 1}}
             ]))
             cache.set('authors_list', authors, timeout=300)
@@ -69,7 +125,23 @@ def index():
     except:
         # Fallback if cache is not available
         authors = list(db.publications.aggregate([
-            {"$group": {"_id": "$author", "count": {"$sum": 1}}},
+            {"$project": {
+                "author": 1,
+                "authors": 1,
+                "all_authors": {
+                    "$cond": {
+                        "if": {"$isArray": "$authors"},
+                        "then": "$authors",
+                        "else": {"$cond": {
+                            "if": {"$ne": ["$author", None]},
+                            "then": ["$author"],
+                            "else": []
+                        }}
+                    }
+                }
+            }},
+            {"$unwind": "$all_authors"},
+            {"$group": {"_id": "$all_authors", "count": {"$sum": 1}}},
             {"$sort": {"_id": 1}}
         ]))
         categories = list(db.publications.aggregate([
@@ -114,10 +186,21 @@ def author_info(author_id):
         flash('Author not found')
         return redirect(url_for('main.authors'))
     
-    latest_publications = list(db.publications.find({'author': author['name']}).sort("publish_date", -1).limit(5))
+    # Find publications where author is in authors array or matches old author field
+    latest_publications = list(db.publications.find({
+        "$or": [
+            {"authors": {"$in": [author['name']]}},
+            {"author": author['name']}
+        ]
+    }).sort("publish_date", -1).limit(5))
     
     publish_date_counts = list(db.publications.aggregate([
-        {"$match": {"author": author['name']}},
+        {"$match": {
+            "$or": [
+                {"authors": {"$in": [author['name']]}},
+                {"author": author['name']}
+            ]
+        }},
         {"$group": {"_id": {"$year": {"$dateFromString": {"dateString": "$publish_date"}}}, "count": {"$sum": 1}}},
         {"$sort": {"_id": 1}}
     ]))
@@ -152,11 +235,17 @@ def view_pdf(publication_id):
 
     Publication.increment_view_count(db, publication_id)
     
-    author_info = Author.get_by_name(db, publication['author'])
-    if author_info:
-        publication['author_image'] = author_info.get('image', None)
-    else:
-        publication['author_image'] = None
+    # Get authors list (handle both old and new format)
+    authors_list = Publication.get_authors_display(publication)
+    publication['authors_list'] = authors_list
+    
+    # Get author images for all authors
+    author_images = {}
+    for author_name in authors_list:
+        author_info = Author.get_by_name(db, author_name)
+        if author_info and author_info.get('image'):
+            author_images[author_name] = author_info['image']
+    publication['author_images'] = author_images
 
     pdf_url = url_for('static', filename='uploads/pdfs/' + publication['pdf_filename'])
     return render_template('view_pdf.html', publication=publication, pdf_url=pdf_url)

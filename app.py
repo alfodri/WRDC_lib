@@ -56,10 +56,42 @@ def create_default_admin():
         print("Default admin user created: username='admin', password='admin123'")
         print("⚠️  IMPORTANT: Change the default password in production!")
 
+# Migrate publications from single author to authors array
+def migrate_authors_to_array():
+    """Convert existing publications with single 'author' field to 'authors' array"""
+    from utils.db import get_db
+    from datetime import datetime
+    db = get_db()
+    
+    # Find publications that have 'author' field but not 'authors' array
+    publications_to_migrate = db.publications.find({
+        'author': {'$exists': True},
+        'authors': {'$exists': False}
+    })
+    
+    migrated_count = 0
+    for pub in publications_to_migrate:
+        if pub.get('author') and not pub.get('authors'):
+            # Convert single author to authors array
+            db.publications.update_one(
+                {'_id': pub['_id']},
+                {
+                    '$set': {
+                        'authors': [pub['author']],
+                        'updated_at': datetime.utcnow()
+                    }
+                }
+            )
+            migrated_count += 1
+    
+    if migrated_count > 0:
+        print(f"✅ Migrated {migrated_count} publication(s) from single author to authors array")
+
 # Note: before_first_request is deprecated in Flask 2.2+
 # Using app context instead
 
 if __name__ == '__main__':
     with app.app_context():
         create_default_admin()
+        migrate_authors_to_array()
     app.run(host='0.0.0.0', port=5001, debug=True)

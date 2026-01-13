@@ -21,6 +21,58 @@
         border-bottom: 2px solid #f1f3f5;
         padding-bottom: 0.5rem;
     }
+    .author-checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+    .author-checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .author-checkbox-item:hover {
+        border-color: #17a2b8;
+        background: #f0f9fa;
+    }
+    .author-checkbox-item input[type="checkbox"] {
+        margin-right: 0.75rem;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .author-checkbox-item label {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+    }
+    .author-thumb {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 0.75rem;
+        border: 2px solid #e9ecef;
+    }
+    .author-checkbox-item input[type="checkbox"]:checked + label,
+    .author-checkbox-item:has(input[type="checkbox"]:checked) {
+        border-color: #17a2b8;
+        background: #e7f5f7;
+    }
 </style>
 {% endblock %}
 
@@ -37,19 +89,30 @@
                     <label for="title">Publication Title</label>
                     <input type="text" class="form-control" id="title" name="title" required placeholder="Enter publication title">
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="author">Author</label>
-                            <input list="authors" class="form-control" id="author" name="author" required placeholder="Select or type author">
-                            <datalist id="authors">
-                                {% for author in authors %}
-                                <option value="{{ author.name }}">{{ author.name }}</option>
-                                {% endfor %}
-                            </datalist>
+                <div class="form-group">
+                    <label>Authors <span class="text-danger">*</span> <small class="text-muted">(select one or more)</small></label>
+                    <div class="author-checkbox-grid">
+                        {% for author in authors %}
+                        <div class="author-checkbox-item">
+                            <input type="checkbox" name="authors" value="{{ author.name }}" id="author_{{ loop.index }}">
+                            <label for="author_{{ loop.index }}">
+                                {% if author.image %}
+                                <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" 
+                                     class="author-thumb" alt="{{ author.name }}">
+                                {% else %}
+                                <div class="author-thumb bg-light d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <span>{{ author.name }}</span>
+                            </label>
                         </div>
+                        {% endfor %}
                     </div>
-                    <div class="col-md-6">
+                    <small class="form-text text-muted">Select at least one author for this publication.</small>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
                         <div class="form-group">
                             <label for="category">Category</label>
                             <input list="categories" class="form-control" id="category" name="category" required placeholder="Select or type category">

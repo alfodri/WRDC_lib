@@ -167,6 +167,35 @@
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
+    .authors-stack-viewer {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .author-avatar-viewer {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .author-name-viewer {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+
+    .author-info-viewer {
+        flex: 1;
+        min-width: 0;
+    }
+
     @media (max-width: 991px) {
         #pdf-canvas-container {
             flex-direction: column;
@@ -209,19 +238,68 @@
                 
                 <h2 class="h4 font-weight-bold mb-4 text-dark">{{ publication.title }}</h2>
                 
-                <div class="d-flex align-items-center mb-4">
-                    {% if publication.author_image %}
-                    <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_image) }}" 
-                         class="author-avatar-large mr-3" alt="{{ publication.author }}">
-                    {% else %}
-                    <div class="author-avatar-large bg-light d-flex align-items-center justify-content-center mr-3">
-                        <i class="fas fa-user text-muted fa-2x"></i>
-                    </div>
+                <div class="mb-4">
+                    {% set authors_list = publication.get('authors_list', []) %}
+                    {% if not authors_list and publication.get('author') %}
+                        {% set authors_list = [publication.author] %}
                     {% endif %}
-                    <div>
-                        <h6 class="mb-0 font-weight-bold">{{ publication.author }}</h6>
-                        <small class="text-muted">Research Author</small>
-                    </div>
+                    {% if authors_list %}
+                        {% if authors_list|length == 1 %}
+                            {# Single author - show large avatar #}
+                            <div class="d-flex align-items-center mb-3">
+                                {% if publication.get('author_images', {}).get(authors_list[0]) %}
+                                <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_images[authors_list[0]]) }}" 
+                                     class="author-avatar-large mr-3" alt="{{ authors_list[0] }}">
+                                {% else %}
+                                <div class="author-avatar-large bg-light d-flex align-items-center justify-content-center mr-3">
+                                    <i class="fas fa-user text-muted fa-2x"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0 font-weight-bold">{{ authors_list[0] }}</h6>
+                                    <small class="text-muted">Research Author</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            {# Multiple authors - show stacked avatars #}
+                            <div class="authors-stack-viewer">
+                                {% for author_name in authors_list %}
+                                    {% if publication.get('author_images', {}).get(author_name) %}
+                                    <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_images[author_name]) }}" 
+                                         class="author-avatar-viewer" 
+                                         alt="{{ author_name }}"
+                                         title="{{ author_name }}">
+                                    {% else %}
+                                    <div class="author-avatar-viewer bg-light d-flex align-items-center justify-content-center" title="{{ author_name }}">
+                                        <i class="fas fa-user text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="author-info-viewer">
+                                {% for author_name in authors_list %}
+                                    <div class="author-name-viewer">{{ author_name }}</div>
+                                {% endfor %}
+                                <small class="text-muted">Research Authors</small>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        {# Fallback for old format #}
+                        <div class="d-flex align-items-center mb-3">
+                            {% if publication.author_image %}
+                            <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_image) }}" 
+                                 class="author-avatar-large mr-3" alt="{{ publication.author }}">
+                            {% else %}
+                            <div class="author-avatar-large bg-light d-flex align-items-center justify-content-center mr-3">
+                                <i class="fas fa-user text-muted fa-2x"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 font-weight-bold">{{ publication.author }}</h6>
+                                <small class="text-muted">Research Author</small>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-4">

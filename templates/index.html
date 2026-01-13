@@ -97,6 +97,34 @@
             color: var(--secondary-color);
         }
 
+        .author-stack {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .author-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-left: -8px;
+        }
+
+        .author-avatar-small:first-child {
+            margin-left: 0;
+        }
+
+        .author-names {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
         /* Sidebar Styling */
         .sidebar-widget {
             background: white;
@@ -255,8 +283,34 @@
                             <div class="card-body">
                                 <h5 class="pub-title">{{ publication.title }}</h5>
                                 <div class="pub-meta">
-                                    <div class="mb-1">
-                                        <i class="fas fa-user-edit"></i> {{ publication.author }}
+                                    <div class="mb-2">
+                                        {% set authors_list = publication.get('authors_list', []) %}
+                                        {% if not authors_list and publication.get('author') %}
+                                            {% set authors_list = [publication.author] %}
+                                        {% endif %}
+                                        {% if authors_list %}
+                                        <div class="author-stack">
+                                            {% for author_name in authors_list %}
+                                                {% if publication.get('author_images', {}).get(author_name) %}
+                                                <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_images[author_name]) }}" 
+                                                     class="author-avatar-small" 
+                                                     alt="{{ author_name }}"
+                                                     title="{{ author_name }}">
+                                                {% else %}
+                                                <div class="author-avatar-small bg-light d-flex align-items-center justify-content-center" title="{{ author_name }}">
+                                                    <i class="fas fa-user text-muted" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="author-names">
+                                            <i class="fas fa-user-edit"></i> {{ authors_list | join(', ') }}
+                                        </div>
+                                        {% else %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-user-edit"></i> {{ publication.get('author', 'Unknown') }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div>
                                         <i class="fas fa-calendar-alt"></i> {{ publication.publish_date | format_date }}
