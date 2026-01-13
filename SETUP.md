@@ -38,7 +38,7 @@ Make sure MongoDB is running on `localhost:27017`. The application will connect 
 python app.py
 ```
 
-The application will start on `http://0.0.0.0:5001`
+The application will start on `http://0.0.0.0:2000`
 
 ### 5. Default Admin Account
 
@@ -115,9 +115,9 @@ If you get import errors:
 
 ### Port Already in Use
 
-If port 5001 is already in use:
-1. Change the port in `app.py`: `app.run(host='0.0.0.0', port=5002)`
-2. Or stop the process using port 5001
+If port 2000 is already in use:
+1. Change the port in `app.py`: `app.run(host='0.0.0.0', port=2001)`
+2. Or stop the process using port 2000
 
 ## Production Deployment
 
