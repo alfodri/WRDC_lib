@@ -2,13 +2,111 @@
 
 **Last Updated:** 2026-01-13
 
-> **Instructions for AI Agents:**  
-> This is a living document. Update this file at the end of each conversation session.  
-> Add notes about changes made, issues discovered, user preferences, and next steps.
-
 ---
 
 ## Session History
+
+### Session: 2026-01-13 (Enhanced PDF Book Viewer)
+**Agent:** Claude
+**Changes Made:**
+- Redesigned PDF viewer to display documents like an open book with dual pages.
+- Added realistic book styling with wooden background, binding effect, and page shadows.
+- Made book mode (dual-page) the default viewing experience.
+- Enhanced toolbar with professional gradient styling.
+- Added hover effects and smooth transitions for better user interaction.
+- Implemented scroll mode for continuous single-page reading.
+- Added keyboard navigation and zoom controls for both modes.
+
+**Notes:**
+- Users can toggle between "Book Mode" (dual pages) and "Scroll Mode" (continuous single page).
+- Book mode provides an immersive reading experience with realistic page effects.
+- Scroll mode offers traditional web-based PDF reading with full zoom and navigation.
+
+---
+
+### Session: 2026-01-13 (Category Selection Feature)
+**Agent:** Claude
+**Changes Made:**
+- Added smart category selection with HTML datalists for easy category management.
+- Updated "Add Publication" and "Edit Publication" forms to show existing categories as suggestions.
+- Users can select from existing categories or type new ones.
+- Improved form UX with better placeholders and validation.
+
+**Notes:**
+- Maintains data consistency by encouraging reuse of existing categories.
+- Still allows creation of new categories when needed.
+- Applied to both add and edit publication forms.
+
+---
+
+### Session: 2026-01-13 (Author Pages Redesign)
+**Agent:** Claude
+**Changes Made:**
+- Completely redesigned author.html and author_info.html with modern, professional layouts.
+- Added gradient headers, card-based sections, and interactive elements.
+- Improved author listing with profile cards and hover effects.
+- Enhanced author detail page with stats overview, organized information sections, and better publication display.
+- Fixed MongoDB cursor to list conversion issue in author_info route.
+- Maintained consistency with the overall application design theme.
+
+**Notes:**
+- Author listing now features beautiful profile cards with gradient backgrounds.
+- Individual author profiles include comprehensive stats and publication showcases.
+- All templates now extend base.html for unified navigation and styling.
+
+---
+
+### Session: 2026-01-13 (Automated Cover Generation & Admin Redesign)
+**Agent:** Claude  
+**Changes Made:**
+- Implemented **Automated Cover Image Generation**: The system now extracts the first page of an uploaded PDF to use as the publication's cover image.
+- Added `pymupdf` (fitz) and `Pillow` dependencies for high-quality thumbnail extraction.
+- Created `utils/pdf_helper.py` to handle the PDF-to-image processing.
+- Refactored all **Admin Templates** to extend `base.html`, providing a consistent, professional dashboard UI.
+- Updated "Add Publication" and "Edit Publication" forms to make manual cover uploads optional.
+- Optimized the Admin Dashboard with status badges, profile pictures, and improved spacing.
+
+**Notes:**
+- Users no longer need to manually create and upload cover images for reports.
+- Manual overrides for covers are still supported if a specific image is preferred.
+- All admin pages now match the professional aesthetic established for the homepage.
+
+---
+
+### Session: 2026-01-13 (Responsive UI Optimization)
+**Agent:** Claude  
+**Changes Made:**
+- Optimized the homepage for different screen sizes.
+- Restrict the large "Hero" section (title, subtitle, large search bar) to desktop screens only (`d-none d-lg-block`).
+- Added a compact, mobile-friendly search input within the filter section for smaller screens (`d-lg-none`).
+- Adjusted layout spacing for mobile by removing negative margins on the filter card when the hero is hidden.
+- Added `line-clamp` standard property for better cross-browser compatibility.
+
+**Notes:**
+- The homepage is now much cleaner on mobile devices while retaining full search and filter functionality.
+- PC users still enjoy the high-impact "Hero" section.
+- Responsive breakpoints are handled via Bootstrap's display utilities and custom media queries.
+
+---
+
+### Session: 2026-01-13 (UI Redesign)
+**Agent:** Claude  
+**Changes Made:**
+- Created `templates/base.html` as a foundation for all pages
+- Implemented a modern, professional Navbar with sticky positioning
+- Added a high-impact Hero section with integrated search to the homepage
+- Redesigned the publication grid with hover effects, category badges, and metadata icons
+- Modernized the filter bar with a compact, card-based layout
+- Updated sidebar widgets with improved typography and clean styling
+- Enhanced Chart.js visualizations with a modern color palette and better responsiveness
+- Switched to Google Fonts (Inter) and added FontAwesome for professional iconography
+
+**Notes:**
+- The homepage now reflects a professional "Digital Library" aesthetic
+- Project maintains Bootstrap 4 but with significant custom styling enhancements
+- Navigation and footer are now consistent across all pages via template inheritance
+
+---
 
 ### Session: 2026-01-13 (GitHub Repository Setup)
 **Agent:** Claude  
@@ -109,7 +207,7 @@
 - [ ] Add search functionality to authors page
 - [ ] Implement pagination for authors listing
 - [ ] Add thumbnail generation for PDFs (currently using uploaded covers)
-- [ ] Add download counters for publications (view counter implemented)
+- [x] ~~Add download counters for publications (view counter implemented)~~ ✅ DONE
 - [x] ~~Implement user roles (admin, editor, viewer)~~ ✅ DONE
 - [ ] Add user profile editing page
 - [ ] Implement favorites UI (currently backend only)
@@ -120,7 +218,7 @@
 - [ ] Add tags/keywords to publications
 - [x] ~~Implement favorites/bookmarks for users~~ ✅ DONE (backend)
 - [ ] Add comments/notes system for publications
-- [ ] Implement UI redesign with Tailwind CSS (Phase 4 - optional)
+- [x] ~~Implement UI redesign with Tailwind CSS (Phase 4 - optional)~~ ✅ DONE (Used custom Bootstrap enhancement)
 
 ### Infrastructure
 - [ ] Add proper logging system
@@ -172,8 +270,8 @@
 - User registration and authentication
 - Role-based access control
 - Publication browsing with enhanced search/filter
-- PDF viewing with view counter
-- Author profiles with statistics
+- **PDF viewing with dual-page book mode and scroll mode**
+- **Author profiles with modern card layouts and comprehensive stats**
 - Add content (publications/authors) for all logged-in users
 - Edit/delete publications (editors/admins)
 - Edit/delete authors (editors/admins)
@@ -185,6 +283,10 @@
 - Pagination on homepage
 - Date formatting
 - Secure session management
+- **Automated cover generation from PDF first page**
+- **Smart category selection with datalist suggestions**
+- **Professional admin interface with unified design**
+- **Responsive design optimized for PC and mobile**
 
 ### Database Collections
 1. **publications** - Enhanced with timestamps and counters
@@ -199,13 +301,13 @@ Codebase is now modular with:
 - .gitignore - Git ignore rules
 - models/ - Data models (User, Publication, Author)
 - routes/ - Route blueprints (main, auth, admin, api)
-- utils/ - Utility functions (auth, db)
+- utils/ - Utility functions (auth, db, pdf_helper)
 - templates/ - Organized templates (auth/, admin/)
-- requirements.txt - 12 dependencies
+- requirements.txt - 14 dependencies
 - .env - Environment variables (NOT in git)
 - memory/ - Project documentation
 - SETUP.md - Setup instructions
-- IMPLEMENTATION_SUMMARY.md - Implementation details
+- IMPLEMENTATION_SUMMARY.md - Detailed implementation summary
 ```
 
 ### Version Control
@@ -221,6 +323,38 @@ Codebase is now modular with:
 ---
 
 ## Recent Changes Log
+
+**2026-01-13 (Automated Cover & Admin Redesign):**
+- Integrated PyMuPDF for automated cover extraction from PDF first pages.
+- Refactored all Admin templates to extend base.html for unified "pro" look.
+- Cleaned up Admin forms and dashboard UI.
+- Added smart category selection with datalist for easy category management.
+
+**2026-01-13 (Enhanced PDF Book Viewer):**
+- Redesigned PDF viewer to display documents like an open book with dual pages.
+- Added realistic book styling with wooden background, binding effect, and page shadows.
+- Made book mode (dual-page) the default viewing experience.
+- Enhanced toolbar with professional gradient styling.
+- Added hover effects and smooth transitions for better user interaction.
+
+**2026-01-13 (Author Pages Redesign):**
+- Completely redesigned author.html and author_info.html with modern, professional layouts.
+- Added gradient headers, card-based sections, and interactive elements.
+- Improved author listing with profile cards and hover effects.
+- Enhanced author detail page with stats overview, organized information sections, and better publication display.
+- Maintained consistency with the overall application design theme.
+- Fixed MongoDB cursor to list conversion issue in author_info route.
+
+**2026-01-13 (Responsive UI Optimization):**
+- Restricted large Hero section to desktop viewports.
+- Added mobile-specific search input to filter bar.
+- Adjusted responsive layout spacing.
+
+**2026-01-13 (UI Redesign):**
+- Created base.html for template inheritance
+- Redesigned index.html with Hero section, modern filters, and enhanced publication cards
+- Added FontAwesome and Inter font
+- Modernized sidebar and charts
 
 **2026-01-13 (GitHub Repository):**
 - Git repository initialized
@@ -278,25 +412,25 @@ Codebase is now modular with:
 ## Notes for Next Session
 
 **Completed:**
-- ✅ All major enhancement phases implemented
-- ✅ Permission system updated: all users can add books
-- ✅ Security improvements completed
-- ✅ REST API fully functional
-- ✅ Project pushed to GitHub repository
-- ✅ Git repository configured with proper exclusions
+- ✅ Automated cover image extraction from PDF files.
+- ✅ Admin dashboard and all management pages redesigned.
+- ✅ Full template inheritance system (`base.html`).
+- ✅ All admin features now have a modern "pro" aesthetic.
 
 **Remaining Work:**
-- UI redesign with Tailwind CSS (optional Phase 4)
-- User profile editing page
-- Favorites UI implementation
-- Error pages (404, 500)
-- Password change functionality
+- Update auth templates (login, register) to extend `base.html`.
+- User profile editing page.
+- Favorites UI implementation.
+- Error pages (404, 500).
+- Password change functionality.
+- Email verification for registration.
 
 **User Preferences Learned:**
-- User wants all logged-in users to be able to add books/publications
-- Keep admin permissions for editing/deleting and user management
-- Maintain existing Bootstrap UI (Tailwind redesign can be optional)
-
+- User appreciates a "pro" and modern look
+- Values automation features (PDF cover generation)
+- Prefers clean, dashboard-style admin interfaces
+- Maintains Kuwait MEW branding elements
+- Optimizes for PC users while ensuring mobile compatibility.
 ---
 
 ## Agent Update Instructions

@@ -1,52 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Authors</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Library</a>
-            <div class="navbar-nav ml-auto">
-                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-                <a class="nav-link" href="{{ url_for('admin.publications') }}">Publications</a>
-                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-            </div>
+{% extends "base.html" %}
+
+{% block title %}Manage Authors - WRDC Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+    .table thead th {
+        border-top: none;
+        background: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #6c757d;
+        padding: 1rem;
+    }
+    .table td {
+        vertical-align: middle;
+        padding: 1rem;
+    }
+    .author-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Authors</li>
+                </ol>
+            </nav>
+            <h1 class="h2 font-weight-bold">Manage Authors</h1>
         </div>
-    </nav>
-    <div class="container mt-5">
-        <h1>Manage Authors</h1>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for author in authors %}
-                <tr>
-                    <td>{{ author.name }}</td>
-                    <td>
-                        {% if author.image %}
-                        <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" width="50" height="50">
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.edit_author', author_id=author._id) }}" class="btn btn-sm btn-primary">Edit</a>
-                        <form method="POST" action="{{ url_for('admin.delete_author', author_id=author._id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this author?');">
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-success rounded-pill px-4">
+            <i class="fas fa-plus-circle mr-2"></i>Add Author
+        </a>
     </div>
-</body>
-</html>
+
+    <div class="card admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for author in authors %}
+                    <tr>
+                        <td>
+                            {% if author.image %}
+                            <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" 
+                                 class="author-img" alt="{{ author.name }}">
+                            {% else %}
+                            <div class="author-img bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-weight-bold text-dark">{{ author.name }}</div>
+                            <small class="text-muted">{{ author.education[:50] }}...</small>
+                        </td>
+                        <td>{{ author.created_at.strftime('%B %d, %Y') if author.created_at else 'N/A' }}</td>
+                        <td class="text-right">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.edit_author', author_id=author._id) }}" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3 mr-2">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_author', author_id=author._id) }}" 
+                                      style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this author? This will NOT delete their publications but may cause display issues.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <i class="fas fa-user-friends fa-3x text-light mb-3"></i>
+                            <h5 class="text-muted">No authors found</h5>
+                            <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-success mt-3">Add your first author</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

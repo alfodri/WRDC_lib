@@ -1,63 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Publications</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Library</a>
-            <div class="navbar-nav ml-auto">
-                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-                <a class="nav-link" href="{{ url_for('admin.authors') }}">Authors</a>
-                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-            </div>
+{% extends "base.html" %}
+
+{% block title %}Manage Publications - WRDC Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+    .table thead th {
+        border-top: none;
+        background: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #6c757d;
+        padding: 1rem;
+    }
+    .table td {
+        vertical-align: middle;
+        padding: 1rem;
+    }
+    .pub-thumbnail {
+        width: 40px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Publications</li>
+                </ol>
+            </nav>
+            <h1 class="h2 font-weight-bold">Manage Publications</h1>
         </div>
-    </nav>
-    <div class="container mt-5">
-        <h1>Manage Publications</h1>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Category</th>
-                    <th>Publish Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for publication in publications %}
-                <tr>
-                    <td>{{ publication.title }}</td>
-                    <td>{{ publication.author }}</td>
-                    <td>{{ publication.category }}</td>
-                    <td>{{ publication.publish_date | format_date }}</td>
-                    <td>
-                        <a href="{{ url_for('admin.edit_publication', publication_id=publication._id) }}" class="btn btn-sm btn-primary">Edit</a>
-                        <form method="POST" action="{{ url_for('admin.delete_publication', publication_id=publication._id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this publication?');">
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-primary rounded-pill px-4">
+            <i class="fas fa-plus-circle mr-2"></i>Add Publication
+        </a>
+    </div>
+
+    <div class="card admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Cover</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Published</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for publication in publications %}
+                    <tr>
+                        <td>
+                            <img src="{{ url_for('static', filename='uploads/covers/' + publication.cover_filename) }}" 
+                                 class="pub-thumbnail" alt="{{ publication.title }}">
+                        </td>
+                        <td>
+                            <div class="font-weight-bold text-dark">{{ publication.title }}</div>
+                            <small class="text-muted">{{ publication.pdf_filename }}</small>
+                        </td>
+                        <td>{{ publication.author }}</td>
+                        <td><span class="badge badge-light px-3 py-2 rounded-pill">{{ publication.category }}</span></td>
+                        <td>{{ publication.publish_date | format_date }}</td>
+                        <td class="text-right">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.edit_publication', publication_id=publication._id) }}" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3 mr-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_publication', publication_id=publication._id) }}" 
+                                      style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this publication?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="fas fa-book-open fa-3x text-light mb-3"></i>
+                            <h5 class="text-muted">No publications found</h5>
+                            <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-primary mt-3">Add your first publication</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
         {% if total_pages > 1 %}
-        <nav>
-            <ul class="pagination">
-                {% for p in range(1, total_pages + 1) %}
-                <li class="page-item {% if p == page %}active{% endif %}">
-                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </nav>
+        <div class="card-footer bg-white border-top-0 py-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% for p in range(1, total_pages + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link shadow-none" href="?page={{ p }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
         {% endif %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

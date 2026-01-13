@@ -1,46 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Library</a>
-            <div class="navbar-nav ml-auto">
-                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-                <a class="nav-link" href="{{ url_for('admin.publications') }}">Publications</a>
-                <a class="nav-link" href="{{ url_for('admin.authors') }}">Authors</a>
-                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-            </div>
+{% extends "base.html" %}
+
+{% block title %}Manage Users - WRDC Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+    .table thead th {
+        border-top: none;
+        background: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #6c757d;
+        padding: 1rem;
+    }
+    .table td {
+        vertical-align: middle;
+        padding: 1rem;
+    }
+    .role-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Users</li>
+                </ol>
+            </nav>
+            <h1 class="h2 font-weight-bold">Manage Users</h1>
         </div>
-    </nav>
-    <div class="container mt-5">
-        <h1>Manage Users</h1>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Created</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td><span class="badge badge-{% if user.role == 'admin' %}danger{% elif user.role == 'editor' %}warning{% else %}info{% endif %}">{{ user.role }}</span></td>
-                    <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
-</body>
-</html>
+
+    <div class="card admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined Date</th>
+                        <th class="text-right">Account Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-user text-muted small"></i>
+                                </div>
+                                <span class="font-weight-bold text-dark">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge role-badge rounded-pill 
+                                {% if user.role == 'admin' %}badge-danger
+                                {% elif user.role == 'editor' %}badge-warning
+                                {% else %}badge-info{% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}</td>
+                        <td class="text-right">
+                            <span class="text-success small font-weight-bold">
+                                <i class="fas fa-check-circle mr-1"></i> Active
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="fas fa-users-slash fa-3x text-light mb-3"></i>
+                            <h5 class="text-muted">No users found</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

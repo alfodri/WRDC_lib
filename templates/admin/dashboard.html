@@ -1,73 +1,135 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Library</a>
-            <div class="navbar-nav ml-auto">
-                <a class="nav-link" href="{{ url_for('admin.publications') }}">Publications</a>
-                <a class="nav-link" href="{{ url_for('admin.authors') }}">Authors</a>
-                <a class="nav-link" href="{{ url_for('admin.users') }}">Users</a>
-                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - WRDC Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.2;
+        position: absolute;
+        right: 1.5rem;
+        top: 1.5rem;
+    }
+    .recent-list {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 font-weight-bold">Admin Dashboard</h1>
+        <div>
+            <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-plus-circle mr-2"></i>Add Content
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <i class="fas fa-book stat-icon text-primary"></i>
+                    <h6 class="text-muted font-weight-bold text-uppercase small mb-2">Publications</h6>
+                    <h2 class="display-4 font-weight-bold mb-0">{{ stats.total_publications }}</h2>
+                    <a href="{{ url_for('admin.publications') }}" class="btn btn-link px-0 mt-3 text-primary">Manage <i class="fas fa-arrow-right ml-1 small"></i></a>
+                </div>
             </div>
         </div>
-    </nav>
-    <div class="container mt-5">
-        <h1>Admin Dashboard</h1>
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Publications</h5>
-                        <h2>{{ stats.total_publications }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Authors</h5>
-                        <h2>{{ stats.total_authors }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Users</h5>
-                        <h2>{{ stats.total_users }}</h2>
-                    </div>
+        <div class="col-md-4">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <i class="fas fa-users stat-icon text-success"></i>
+                    <h6 class="text-muted font-weight-bold text-uppercase small mb-2">Authors</h6>
+                    <h2 class="display-4 font-weight-bold mb-0">{{ stats.total_authors }}</h2>
+                    <a href="{{ url_for('admin.authors') }}" class="btn btn-link px-0 mt-3 text-success">Manage <i class="fas fa-arrow-right ml-1 small"></i></a>
                 </div>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <h3>Recent Publications</h3>
-                <ul class="list-group">
-                    {% for pub in stats.recent_publications %}
-                    <li class="list-group-item">
-                        <a href="{{ url_for('main.view_pdf', publication_id=pub._id) }}">{{ pub.title }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h3>Recent Authors</h3>
-                <ul class="list-group">
-                    {% for author in stats.recent_authors %}
-                    <li class="list-group-item">
-                        <a href="{{ url_for('main.author_info', author_id=author._id) }}">{{ author.name }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
+        <div class="col-md-4">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <i class="fas fa-user-shield stat-icon text-danger"></i>
+                    <h6 class="text-muted font-weight-bold text-uppercase small mb-2">System Users</h6>
+                    <h2 class="display-4 font-weight-bold mb-0">{{ stats.total_users }}</h2>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-link px-0 mt-3 text-danger">Manage <i class="fas fa-arrow-right ml-1 small"></i></a>
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+
+    <div class="row">
+        <!-- Recent Publications -->
+        <div class="col-lg-6 mb-4">
+            <div class="card recent-list border-0">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="font-weight-bold mb-0">Recent Publications</h5>
+                    <a href="{{ url_for('admin.publications') }}" class="small">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for pub in stats.recent_publications %}
+                        <div class="list-group-item px-4 py-3 d-flex align-items-center border-light">
+                            <div class="bg-light rounded p-2 mr-3">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 font-weight-bold">{{ pub.title }}</h6>
+                                <small class="text-muted">{{ pub.author }} &bull; {{ pub.publish_date | format_date }}</small>
+                            </div>
+                            <a href="{{ url_for('main.view_pdf', publication_id=pub._id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Authors -->
+        <div class="col-lg-6 mb-4">
+            <div class="card recent-list border-0">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="font-weight-bold mb-0">Recent Authors</h5>
+                    <a href="{{ url_for('admin.authors') }}" class="small">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for author in stats.recent_authors %}
+                        <div class="list-group-item px-4 py-3 d-flex align-items-center border-light">
+                            {% if author.image %}
+                            <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" 
+                                 class="rounded-circle mr-3" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-light mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 font-weight-bold">{{ author.name }}</h6>
+                                <small class="text-muted">{{ author.created_at.strftime('%B %d, %Y') if author.created_at else 'Joined recently' }}</small>
+                            </div>
+                            <a href="{{ url_for('main.author_info', author_id=author._id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">Profile</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -35,13 +35,16 @@
 **Location:** `/view_pdf/<publication_id>`
 
 **Features:**
-- Full-screen embedded PDF viewer
-- Publication metadata display:
-  - Title
-  - Author with profile picture (if available)
-  - Publish date (formatted)
+- **Book Mode (Default):** Realistic dual-page book display with wooden background and binding effects
+- **Scroll Mode:** Traditional continuous single-page reading experience
+- **Professional Toolbar:** Gradient styling with navigation, zoom, and mode toggle controls
+- Publication metadata display in sidebar:
+  - Title, author with profile picture, category, publish date, view statistics
+- **Dual-Page Navigation:** Keyboard controls (arrow keys) and toolbar buttons
+- **Zoom Controls:** Smooth zoom in/out functionality
+- **Mode Toggle:** Switch between book and scroll viewing modes
 - Automatic view count increment
-- Native browser PDF controls (zoom, download, print)
+- Download functionality
 - "Back to Library" button
 
 ---
@@ -49,18 +52,19 @@
 ### 3. Author Profiles
 
 **Author Listing** (`/authors`):
-- Grid of author cards with profile pictures
+- **Modern Card Grid:** Professional author cards with gradient backgrounds and hover effects
+- **Profile Avatars:** Large circular profile pictures with professional styling
+- **Author Badges:** Role indicators and publication counts
+- **Responsive Design:** Optimized for all screen sizes
 - Click to view detailed profile
 
 **Author Detail Page** (`/author/<author_id>`):
-- Profile picture
-- Four information sections:
-  - Profile (bio)
-  - Education
-  - Experience and Internships
-  - Technical Skills
-- Latest 5 publications by author
-- Chart.js bar chart: Publications per year
+- **Hero Header:** Stunning gradient background with prominent author avatar
+- **Statistics Dashboard:** Key metrics (publications, active years, total works)
+- **Organized Information Sections:** Color-coded sections for profile, education, experience, and skills
+- **Publication Showcase:** Latest publications with thumbnails and metadata
+- **Interactive Charts:** Enhanced Chart.js visualizations of publication trends
+- **Professional Layout:** Sidebar with publications, main content with author details
 - "Back to Authors" button
 
 ---

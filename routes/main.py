@@ -114,7 +114,7 @@ def author_info(author_id):
         flash('Author not found')
         return redirect(url_for('main.authors'))
     
-    latest_publications = db.publications.find({'author': author['name']}).sort("publish_date", -1).limit(5)
+    latest_publications = list(db.publications.find({'author': author['name']}).sort("publish_date", -1).limit(5))
     
     publish_date_counts = list(db.publications.aggregate([
         {"$match": {"author": author['name']}},

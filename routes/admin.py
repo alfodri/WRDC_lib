@@ -9,6 +9,7 @@ from models.user import User
 from utils.auth import admin_required, editor_required, user_required, get_current_user
 from utils.db import get_db
 from config import Config
+from utils.pdf_helper import generate_pdf_thumbnail
 
 @admin_bp.route('/')
 @admin_required
@@ -38,7 +39,8 @@ def add_content_page():
     """Page for any logged-in user to add publications/authors"""
     db = get_db()
     authors = db.authors.find()
-    return render_template('admin/add_content.html', authors=authors)
+    categories = db.publications.distinct("category")
+    return render_template('admin/add_content.html', authors=authors, categories=categories)
 
 @admin_bp.route('/publications')
 @editor_required
@@ -70,26 +72,37 @@ def add_publication():
     pdf = request.files.get('pdf')
     cover = request.files.get('cover')
 
-    if not all([title, author, category, publish_date, pdf, cover]):
-        flash('All fields are required')
+    if not all([title, author, category, publish_date, pdf]):
+        flash('Publication title, author, category, publish_date, and PDF are required')
         return redirect(url_for('admin.dashboard'))
 
-    if pdf.filename == '' or cover.filename == '':
-        flash('Please select both PDF and cover image files')
+    if pdf.filename == '':
+        flash('Please select a PDF file')
         return redirect(url_for('admin.dashboard'))
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
-    if pdf and allowed_file(pdf.filename) and cover and allowed_file(cover.filename):
+    if pdf and allowed_file(pdf.filename):
         pdf_filename = secure_filename(pdf.filename)
-        cover_filename = secure_filename(cover.filename)
-        
         os.makedirs(Config.PDF_FOLDER, exist_ok=True)
-        os.makedirs(Config.COVER_FOLDER, exist_ok=True)
+        pdf_path = os.path.join(Config.PDF_FOLDER, pdf_filename)
+        pdf.save(pdf_path)
         
-        pdf.save(os.path.join(Config.PDF_FOLDER, pdf_filename))
-        cover.save(os.path.join(Config.COVER_FOLDER, cover_filename))
+        # Handle cover image
+        if cover and cover.filename != '' and allowed_file(cover.filename):
+            cover_filename = secure_filename(cover.filename)
+            os.makedirs(Config.COVER_FOLDER, exist_ok=True)
+            cover.save(os.path.join(Config.COVER_FOLDER, cover_filename))
+        else:
+            # Generate cover from PDF
+            cover_filename = pdf_filename.rsplit('.', 1)[0] + "_cover.jpg"
+            os.makedirs(Config.COVER_FOLDER, exist_ok=True)
+            cover_path = os.path.join(Config.COVER_FOLDER, cover_filename)
+            if generate_pdf_thumbnail(pdf_path, cover_path):
+                flash('Cover image automatically generated from PDF first page.')
+            else:
+                cover_filename = "default_cover.jpg" # Fallback if generation fails
 
         Publication.create(db, title, author, category, publish_date, pdf_filename, cover_filename)
         flash('Publication added successfully!')
@@ -136,8 +149,17 @@ def edit_publication(publication_id):
             if allowed_file(pdf.filename):
                 pdf_filename = secure_filename(pdf.filename)
                 os.makedirs(Config.PDF_FOLDER, exist_ok=True)
-                pdf.save(os.path.join(Config.PDF_FOLDER, pdf_filename))
+                pdf_path = os.path.join(Config.PDF_FOLDER, pdf_filename)
+                pdf.save(pdf_path)
                 update_data['pdf_filename'] = pdf_filename
+                
+                # If cover is not provided, regenerate it from the new PDF
+                if not (cover and cover.filename):
+                    cover_filename = pdf_filename.rsplit('.', 1)[0] + "_cover.jpg"
+                    os.makedirs(Config.COVER_FOLDER, exist_ok=True)
+                    cover_path = os.path.join(Config.COVER_FOLDER, cover_filename)
+                    if generate_pdf_thumbnail(pdf_path, cover_path):
+                        update_data['cover_filename'] = cover_filename
         
         if cover and cover.filename:
             def allowed_file(filename):
@@ -154,7 +176,8 @@ def edit_publication(publication_id):
         return redirect(url_for('admin.publications'))
     
     authors = db.authors.find()
-    return render_template('admin/edit_publication.html', publication=publication, authors=authors)
+    categories = db.publications.distinct("category")
+    return render_template('admin/edit_publication.html', publication=publication, authors=authors, categories=categories)
 
 @admin_bp.route('/delete_publication/<publication_id>', methods=['POST'])
 @editor_required

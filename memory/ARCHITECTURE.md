@@ -201,7 +201,8 @@ WRDC_lib/
 ├── utils/                    # Utility functions
 │   ├── __init__.py
 │   ├── auth.py              # Authentication helpers
-│   └── db.py                # Database helpers
+│   ├── db.py                # Database helpers
+│   └── pdf_helper.py        # PDF processing utilities
 ├── static/                   # Static files
 │   ├── css/                 # CSS files
 │   ├── js/                  # JavaScript files

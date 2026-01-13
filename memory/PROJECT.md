@@ -211,6 +211,28 @@ python app.py
 
 ---
 
+## Version Control
+
+**Repository:** git@github.com:alfodri/WRDC_lib.git  
+**Branch:** main  
+**Status:** Active development
+
+**Git Configuration:**
+- `.gitignore` configured to exclude:
+  - Uploaded files (`static/uploads/`)
+  - Environment variables (`.env`)
+  - Virtual environment (`venv/`)
+  - Python cache files (`__pycache__/`)
+
+**To Clone:**
+```bash
+git clone git@github.com:alfodri/WRDC_lib.git
+cd WRDC_lib
+# Follow setup instructions in SETUP.md
+```
+
+---
+
 ## Permission Model
 
 **Viewer (default):**

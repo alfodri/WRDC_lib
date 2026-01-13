@@ -1,95 +1,388 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Author Info</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h1 class="mt-5">{{ author.name }}</h1>
-        <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" class="img-fluid mb-4" alt="{{ author.name }}">
-        
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Profile</h5>
-                <p class="card-text">{{ author.profile }}</p>
+{% extends "base.html" %}
+
+{% block title %}{{ author.name }} - Author Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .author-main-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 6px solid white;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        margin: 0 auto 1.5rem;
+    }
+
+    .author-full-name {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .author-tagline {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 300;
+        margin-bottom: 1rem;
+    }
+
+    .info-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: none;
+    }
+
+    .section-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .profile-section { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .education-section { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+    .experience-section { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+    .skills-section { background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; }
+
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-content {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #495057;
+    }
+
+    .publications-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .publication-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .publication-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+
+    .pub-thumbnail {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+        margin-right: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .pub-info h6 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: #212529;
+    }
+
+    .pub-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .chart-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .author-main-avatar {
+            width: 120px;
+            height: 120px;
+        }
+
+        .author-full-name {
+            font-size: 1.8rem;
+        }
+
+        .profile-header {
+            padding: 2rem 1rem;
+        }
+
+        .info-section {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        {% if author.image %}
+        <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}"
+             class="author-main-avatar" alt="{{ author.name }}">
+        {% else %}
+        <div class="author-main-avatar bg-light d-flex align-items-center justify-content-center">
+            <i class="fas fa-user fa-3x text-muted"></i>
+        </div>
+        {% endif %}
+
+        <h1 class="author-full-name">{{ author.name }}</h1>
+        <p class="author-tagline">WRDC Technical Author & Research Specialist</p>
+
+        <div class="d-flex justify-content-center gap-3 mt-3">
+            <span class="badge badge-light px-3 py-2">
+                <i class="fas fa-book mr-1"></i>Publications: {{ latest_publications|length }}
+            </span>
+            <span class="badge badge-light px-3 py-2">
+                <i class="fas fa-calendar mr-1"></i>Active Contributor
+            </span>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ latest_publications|length }}</div>
+            <div class="stat-label">Publications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ years|length if years else 0 }}</div>
+            <div class="stat-label">Years Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ counts|sum if counts else 0 }}</div>
+            <div class="stat-label">Total Works</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Author Information -->
+        <div class="col-lg-8">
+            <!-- Profile Section -->
+            <div class="info-section">
+                <div class="section-icon profile-section">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h4 class="section-title">
+                    <i class="fas fa-user-circle"></i>Professional Profile
+                </h4>
+                <div class="section-content">
+                    {{ author.profile }}
+                </div>
             </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Education</h5>
-                <p class="card-text">{{ author.education }}</p>
+
+            <!-- Education Section -->
+            <div class="info-section">
+                <div class="section-icon education-section">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h4 class="section-title">
+                    <i class="fas fa-graduation-cap"></i>Education
+                </h4>
+                <div class="section-content">
+                    {{ author.education }}
+                </div>
             </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Experience and Internships</h5>
-                <p class="card-text">{{ author.experience }}</p>
+
+            <!-- Experience Section -->
+            <div class="info-section">
+                <div class="section-icon experience-section">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h4 class="section-title">
+                    <i class="fas fa-briefcase"></i>Experience & Internships
+                </h4>
+                <div class="section-content">
+                    {{ author.experience }}
+                </div>
             </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Technical Skills</h5>
-                <p class="card-text">{{ author.skills }}</p>
+
+            <!-- Skills Section -->
+            <div class="info-section">
+                <div class="section-icon skills-section">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h4 class="section-title">
+                    <i class="fas fa-tools"></i>Technical Skills
+                </h4>
+                <div class="section-content">
+                    {{ author.skills }}
+                </div>
             </div>
-        </div>
-        
-        <div class="mt-3">
-            <h5>Latest Publications</h5>
-            <ul>
-                {% for publication in latest_publications %}
-                <li>{{ publication.title }} - {{ publication.publish_date | format_date }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        
-        <div class="mt-3">
-            <h5>Number of Publications Per Year</h5>
-            <canvas id="authorPublishChart"></canvas>
         </div>
 
-        <a href="{{ url_for('main.authors') }}" class="btn btn-primary mt-3">Back to Authors</a>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Latest Publications -->
+            <div class="publications-section">
+                <h4 class="font-weight-bold mb-4">
+                    <i class="fas fa-book mr-2 text-primary"></i>Latest Publications
+                </h4>
+
+                {% for publication in latest_publications %}
+                <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}" class="publication-item">
+                    <img src="{{ url_for('static', filename='uploads/covers/' + publication.cover_filename) }}"
+                         class="pub-thumbnail" alt="{{ publication.title }}">
+                    <div class="pub-info flex-grow-1">
+                        <h6>{{ publication.title }}</h6>
+                        <div class="pub-meta">
+                            <span>{{ publication.category }}</span> •
+                            <span>{{ publication.publish_date | format_date }}</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-muted ml-2"></i>
+                </a>
+                {% endfor %}
+
+                {% if not latest_publications %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-book-open fa-2x mb-2 opacity-50"></i>
+                    <p>No publications available</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Publication Trends Chart -->
+            <div class="chart-section">
+                <h4 class="font-weight-bold mb-4">
+                    <i class="fas fa-chart-bar mr-2 text-success"></i>Publication Trends
+                </h4>
+                <div class="chart-container">
+                    <canvas id="authorPublishChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var ctx = document.getElementById('authorPublishChart').getContext('2d');
-            var authorPublishChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: {{ years|tojson }},
-                    datasets: [{
-                        label: 'Number of Publications',
-                        data: {{ counts|tojson }},
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
+
+    <!-- Back Button -->
+    <div class="text-center mb-5">
+        <a href="{{ url_for('main.authors') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Authors
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('authorPublishChart');
+    if (ctx) {
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ years|tojson }},
+                datasets: [{
+                    label: 'Publications per Year',
+                    data: {{ counts|tojson }},
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Publications'
-                            }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Year'
-                            }
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
-            });
+            }
         });
-    </script>
-</body>
-</html>
+    }
+});
+</script>
+{% endblock %}

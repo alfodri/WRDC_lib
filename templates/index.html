@@ -1,233 +1,374 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends "base.html" %}
+
+{% block title %}WRDC Digital Library - Explore Publications{% endblock %}
+
+{% block extra_css %}
     <style>
-        /* Your existing CSS styles */
-        /* Add any additional styles for the header images */
-        .header-container {
-            display: flex;
-            justify-content: space-between; /* Align items with space between */
-            align-items: center; /* Align items vertically */
-        }
-        h1 {
-            margin-bottom: 40px;
-        }
-        .header-img {
-            width: 40%; /* Adjust width as needed */
-            height: auto; /* Maintain aspect ratio */
+        /* Filter Section */
+        .filter-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 3rem;
+            z-index: 10;
+            position: relative;
         }
 
-        .main-content {
-            display: flex;
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            display: block;
         }
-        .publication-list {
-            flex: 3;
+
+        .custom-select-modern {
+            height: 45px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            font-size: 0.95rem;
+            color: #495057;
+            background-color: #f8f9fa;
         }
-        .sidebar {
-            flex: 1;
-            margin-left: 20px;
+
+        /* Publication Grid */
+        .pub-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            height: 100%;
+            background: #fff;
+            transition: var(--transition);
         }
-        .sidebar-section {
-            margin-bottom: 20px;
+
+        .pub-card .card-img-container {
+            height: 240px;
+            overflow: hidden;
+            position: relative;
         }
-        .card-img-top {
-            height: 200px;
+
+        .pub-card .card-img-top {
+            height: 100%;
+            width: 100%;
             object-fit: cover;
+            transition: transform 0.5s ease;
         }
-        .latest-publications img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            margin-right: 10px;
+
+        .pub-card:hover .card-img-top {
+            transform: scale(1.1);
         }
-        .latest-publications li {
+
+        .pub-category-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(23, 162, 184, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .pub-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            color: var(--dark-color);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 2.8rem;
+        }
+
+        .pub-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .pub-meta i {
+            width: 18px;
+            color: var(--secondary-color);
+        }
+
+        /* Sidebar Styling */
+        .sidebar-widget {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #f1f3f5;
+            padding-bottom: 10px;
+        }
+
+        .latest-pub-item {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
-        }
-        footer {
-            margin-top: 20px;
             padding: 10px 0;
-            background-color: #343a40;
-            color: #fff;
-            text-align: center;
-            font-size: 0.9em;
+            border-bottom: 1px solid #f8f9fa;
+            transition: var(--transition);
         }
-        .footer-text {
-            margin: 0;
+
+        .latest-pub-item:last-child {
+            border-bottom: none;
         }
-        .footer-text a {
-            color: #ffc107;
-            text-decoration: none;
+
+        .latest-pub-item:hover {
+            transform: translateX(5px);
         }
-        .pagination {
-            justify-content: center;
+
+        .latest-pub-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+
+        .latest-pub-info h6 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--dark-color);
+        }
+
+        .stats-badge {
+            background-color: #e9ecef;
+            color: #495057;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            float: right;
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            border: none;
+            margin: 0 3px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0, 86, 179, 0.2);
         }
     </style>
-</head>
-<body>
-    <!-- Header Image Section -->
-    <div class="container">
-        <div class="header-container">
-            <img src="https://www.mew.gov.kw/images/newkuwait_ar.svg" alt="Header Image 1" class="header-img">
-            <img src="https://www.mew.gov.kw/images/mew_ar.svg" alt="Header Image 2" class="header-img">
-        </div>
-    </div>
+{% endblock %}
 
+{% block content %}
     <div class="container">
-        <h1 class="mt-5">Water Resources Development Center Digital Library</h1>
-        <div class="mb-3 d-flex justify-content-between">
-            <div>
-                {% if session.get('user_id') %}
-                <a href="{{ url_for('admin.add_content_page') }}" class="btn btn-success">Add Book</a>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Logout ({{ session.get('username') }})</a>
-                {% else %}
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-                {% endif %}
-                <a href="{{ url_for('main.authors') }}" class="btn btn-secondary">Authors</a>
-                <a href="{{ url_for('main.guideline') }}" class="btn btn-secondary">Guidelines</a>
-                {% if session.get('role') in ['admin', 'editor'] %}
-                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-info">Admin Panel</a>
-                {% endif %}
-            </div>
-            <button id="reset-filter" class="btn btn-secondary">Reset Filter</button>
+        <!-- Filter Bar -->
+        <div class="filter-card">
+            <form method="GET" action="{{ url_for('main.index') }}">
+                <div class="row align-items-end">
+                    <div class="col-lg-3 col-md-12 mb-3 d-lg-none">
+                        <label class="filter-label">Search</label>
+                        <input type="text" name="search" class="form-control custom-select-modern" 
+                               placeholder="Search title, author..." 
+                               value="{{ request.args.get('search', '') }}">
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                        <label class="filter-label">Author</label>
+                        <select name="author" class="form-control custom-select-modern">
+                            <option value="">All Authors</option>
+                            {% for a in authors %}
+                                <option value="{{ a._id }}" {% if request.args.get('author') == a._id %}selected{% endif %}>
+                                    {{ a._id }} ({{ a.count }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                        <label class="filter-label">Category</label>
+                        <select name="category" class="form-control custom-select-modern">
+                            <option value="">All Categories</option>
+                            {% for c in categories %}
+                                <option value="{{ c._id }}" {% if request.args.get('category') == c._id %}selected{% endif %}>
+                                    {{ c._id }} ({{ c.count }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                        <label class="filter-label">Year</label>
+                        <select name="publish_date" class="form-control custom-select-modern">
+                            <option value="">All Dates</option>
+                            {% for pd in publish_dates %}
+                                <option value="{{ pd }}" {% if request.args.get('publish_date') == pd %}selected{% endif %}>
+                                    {{ pd }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                        <label class="filter-label">Sort By</label>
+                        <select name="sort" class="form-control custom-select-modern">
+                            <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Title</option>
+                            <option value="author" {% if request.args.get('sort') == 'author' %}selected{% endif %}>Author</option>
+                            <option value="publish_date" {% if request.args.get('sort') == 'publish_date' %}selected{% endif %}>Date</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-12">
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-primary btn-block rounded-pill mr-2 font-weight-bold">Apply</button>
+                            <button type="button" id="reset-filter" class="btn btn-light btn-block rounded-pill m-0 font-weight-bold border">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        <form method="GET" class="mb-3">
-            <div class="form-row">
-                <div class="col">
-                    <input type="text" name="search" class="form-control" placeholder="Search by title" value="{{ request.args.get('search', '') }}">
+
+        <div class="row">
+            <!-- Main Content: Publication List -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="section-title mb-0">Library Collection</h4>
+                    <span class="text-muted small">Showing page {{ page }} of {{ total_pages }}</span>
                 </div>
-                <div class="col">
-                    <select name="author" class="form-control">
-                        <option value="">All Authors</option>
-                        {% for a in authors %}
-                        <option value="{{ a._id }}" {% if request.args.get('author') == a._id %}selected{% endif %}>{{ a._id }} ({{ a.count }} publications)</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="category" class="form-control">
-                        <option value="">All Categories</option>
-                        {% for c in categories %}
-                        <option value="{{ c._id }}" {% if request.args.get('category') == c._id %}selected{% endif %}>{{ c._id }} ({{ c.count }} publications)</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="publish_date" class="form-control">
-                        <option value="">All Publish Dates</option>
-                        {% for pd in publish_dates %}
-                        <option value="{{ pd }}" {% if request.args.get('publish_date') == pd %}selected{% endif %}>{{ pd }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="sort" class="form-control">
-                        <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Sort by Title</option>
-                        <option value="author" {% if request.args.get('sort') == 'author' %}selected{% endif %}>Sort by Author</option>
-                        <option value="category" {% if request.args.get('sort') == 'category' %}selected{% endif %}>Sort by Category</option>
-                        <option value="publish_date" {% if request.args.get('sort') == 'publish_date' %}selected{% endif %}>Sort by Publish Date</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                </div>
-            </div>
-        </form>
-        <div class="main-content">
-            <div class="publication-list">
+
                 <div class="row">
                     {% for publication in publications %}
-                    <div class="col-md-4">
-                        <div class="card mb-4">
-                            <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}">
-                                <img src="{{ url_for('static', filename='uploads/covers/' + publication.cover_filename) }}" class="card-img-top" alt="{{ publication.title }}">
-                            </a>
+                    <div class="col-md-6 col-xl-4 mb-4">
+                        <div class="card pub-card">
+                            <div class="card-img-container">
+                                <span class="pub-category-badge">{{ publication.category }}</span>
+                                <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}">
+                                    <img src="{{ url_for('static', filename='uploads/covers/' + publication.cover_filename) }}" 
+                                         class="card-img-top" alt="{{ publication.title }}">
+                                </a>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ publication.title }} by {{ publication.author }}</h5>
-                                <p class="card-text">{{ publication.category }}<br>{{ publication.publish_date | format_date }}</p>
-                                <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}" class="btn btn-primary">View PDF</a>
+                                <h5 class="pub-title">{{ publication.title }}</h5>
+                                <div class="pub-meta">
+                                    <div class="mb-1">
+                                        <i class="fas fa-user-edit"></i> {{ publication.author }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-calendar-alt"></i> {{ publication.publish_date | format_date }}
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}" 
+                                   class="btn btn-outline-primary btn-block btn-sm rounded-pill font-weight-bold">
+                                    Read Document
+                                </a>
                             </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search fa-3x text-light mb-3"></i>
+                        <h5>No publications found matching your criteria.</h5>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-link">View all publications</a>
+                    </div>
                     {% endfor %}
                 </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
                         {% if page > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=page-1) }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
+                            <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=page-1) }}">
+                                <i class="fas fa-chevron-left"></i>
                             </a>
                         </li>
                         {% endif %}
+                        
                         {% for p in range(1, total_pages + 1) %}
-                        <li class="page-item {% if p == page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=p) }}">{{ p }}</a>
-                        </li>
+                            {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=p) }}">{{ p }}</a>
+                                </li>
+                            {% elif p == page - 3 or p == page + 3 %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
                         {% endfor %}
+
                         {% if page < total_pages %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=page+1) }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
+                            <a class="page-link" href="{{ url_for('main.index', search=request.args.get('search'), author=request.args.get('author'), category=request.args.get('category'), publish_date=request.args.get('publish_date'), sort=request.args.get('sort'), page=page+1) }}">
+                                <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>
                         {% endif %}
                     </ul>
                 </nav>
+                {% endif %}
             </div>
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <h3>Latest Publications</h3>
-                    <ul class="list-group latest-publications">
-                        {% for publication in latest_publications %}
-                        <li class="list-group-item">
-                            <a href="{{ url_for('main.view_pdf', publication_id=publication._id) }}">
-                                <img src="{{ url_for('static', filename='uploads/covers/' + publication.cover_filename) }}" alt="{{ publication.title }}">
-                                <div>
-                                    <strong>{{ publication.title }}</strong><br>
-                                    <small>{{ publication.publish_date | format_date }}</small>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="sidebar-widget">
+                    <h5 class="widget-title">Latest Updates</h5>
+                    <div class="latest-publications">
+                        {% for pub in latest_publications %}
+                        <a href="{{ url_for('main.view_pdf', publication_id=pub._id) }}" class="text-decoration-none">
+                            <div class="latest-pub-item">
+                                <img src="{{ url_for('static', filename='uploads/covers/' + pub.cover_filename) }}" 
+                                     class="latest-pub-img" alt="{{ pub.title }}">
+                                <div class="latest-pub-info">
+                                    <h6 class="mb-0 text-truncate" style="max-width: 200px;">{{ pub.title }}</h6>
+                                    <small class="text-muted">{{ pub.publish_date | format_date }}</small>
                                 </div>
-                            </a>
-                        </li>
+                            </div>
+                        </a>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
-                <div class="sidebar-section">
-                    <h3>Publications by Author</h3>
-                    <ul class="list-group">
-                        {% for a in authors %}
-                        <li class="list-group-item">
-                            {{ a._id }}: {{ a.count }} publications
-                        </li>
+
+                <div class="sidebar-widget">
+                    <h5 class="widget-title">Top Authors</h5>
+                    <div class="list-group list-group-flush">
+                        {% for a in authors[:5] %}
+                        <div class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center">
+                            <span class="font-weight-medium">{{ a._id }}</span>
+                            <span class="stats-badge">{{ a.count }} docs</span>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
-                <div class="sidebar-section">
-                    <h3>Publications by Category</h3>
-                    <ul class="list-group">
+
+                <div class="sidebar-widget">
+                    <h5 class="widget-title">Categories</h5>
+                    <div class="list-group list-group-flush">
                         {% for c in categories %}
-                        <li class="list-group-item">
-                            {{ c._id }}: {{ c.count }} publications
-                        </li>
+                        <div class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center">
+                            <span class="font-weight-medium">{{ c._id }}</span>
+                            <span class="stats-badge">{{ c.count }} docs</span>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
-                <div class="sidebar-section">
-                    <h3>Number of Publications Per Year</h3>
-                    <canvas id="publishChart"></canvas>
+
+                <div class="sidebar-widget">
+                    <h5 class="widget-title">Publication Trends</h5>
+                    <div style="height: 250px;">
+                        <canvas id="publishChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <footer>
-        <p class="footer-text">Designed by <a href="#">Eng. Mohammad Alfoudari</a> | Managed by <a href="#">Eng. Abdulrahman Aljalahmah</a></p>
-    </footer>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var ctx = document.getElementById('publishChart').getContext('2d');
@@ -236,27 +377,28 @@
                 data: {
                     labels: {{ years|tojson }},
                     datasets: [{
-                        label: 'Number of Publications',
+                        label: 'Publications',
                         data: {{ counts|tojson }},
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
+                        backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Publications'
-                            }
+                            grid: { display: false },
+                            ticks: { stepSize: 1 }
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Year'
-                            }
+                            grid: { display: false }
                         }
                     }
                 }
@@ -267,5 +409,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}
