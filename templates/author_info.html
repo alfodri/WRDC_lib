@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author Info</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">{{ author.name }}</h1>
+        <img src="{{ url_for('static', filename='uploads/authors/' + author.image) }}" class="img-fluid mb-4" alt="{{ author.name }}">
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Profile</h5>
+                <p class="card-text">{{ author.profile }}</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Education</h5>
+                <p class="card-text">{{ author.education }}</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Experience and Internships</h5>
+                <p class="card-text">{{ author.experience }}</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Technical Skills</h5>
+                <p class="card-text">{{ author.skills }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <h5>Latest Publications</h5>
+            <ul>
+                {% for publication in latest_publications %}
+                <li>{{ publication.title }} - {{ publication.publish_date | format_date }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="mt-3">
+            <h5>Number of Publications Per Year</h5>
+            <canvas id="authorPublishChart"></canvas>
+        </div>
+
+        <a href="{{ url_for('main.authors') }}" class="btn btn-primary mt-3">Back to Authors</a>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('authorPublishChart').getContext('2d');
+            var authorPublishChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: {{ years|tojson }},
+                    datasets: [{
+                        label: 'Number of Publications',
+                        data: {{ counts|tojson }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Publications'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

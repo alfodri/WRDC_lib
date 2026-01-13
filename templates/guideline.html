@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guidelines for New Authors</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .guideline-section {
+            margin-top: 20px;
+        }
+        .guideline-section h2 {
+            margin-bottom: 15px;
+        }
+        .guideline-section p {
+            margin-bottom: 10px;
+        }
+        .guideline-section ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        footer {
+            margin-top: 20px;
+            padding: 10px 0;
+            background-color: #343a40;
+            color: #fff;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .footer-text {
+            margin: 0;
+        }
+        .footer-text a {
+            color: #ffc107;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Guidelines for New Authors</h1>
+        <div class="guideline-section">
+            <h2>Introduction</h2>
+            <p>Welcome to the Library! We are excited to have you join us as an author. This page provides the guidelines and steps you need to follow to get your publications added to our library.</p>
+        </div>
+        <div class="guideline-section">
+            <h2>Step 1: Register as an Author</h2>
+            <p>To start, you need to register as an author. Please provide the following information:</p>
+            <ul>
+                <li>Your full name</li>
+                <li>A profile picture (optional but recommended)</li>
+                <li>Your CV including your education, experience, and technical skills</li>
+            </ul>
+            <p>Submit this information through our <a href="{{ url_for('admin.dashboard') }}">Admin Panel</a>.</p>
+        </div>
+        <div class="guideline-section">
+            <h2>Step 2: Prepare Your Publication</h2>
+            <p>Make sure your publication meets the following requirements:</p>
+            <ul>
+                <li>The document is in PDF format</li>
+                <li>The cover image is in JPEG or PNG format</li>
+                <li>All images are of high quality</li>
+            </ul>
+        </div>
+        <div class="guideline-section">
+            <h2>Step 3: Submit Your Publication</h2>
+            <p>Once your publication is ready, log in to the <a href="{{ url_for('admin.dashboard') }}">Admin Panel</a> and submit the following details:</p>
+            <ul>
+                <li>Title of the publication</li>
+                <li>Author name</li>
+                <li>Category of the publication</li>
+                <li>Publish date</li>
+                <li>PDF document</li>
+                <li>Cover image</li>
+            </ul>
+            <p>After submission, your publication will be reviewed and added to the library if it meets all the requirements.</p>
+        </div>
+        <div class="guideline-section">
+            <h2>Author Skills</h2>
+            <p>We value the following skills in our authors:</p>
+            <ul>
+                <li>Advanced English proficiency</li>
+                <li>Academic writing</li>
+                <li>Appropriate Level of Citation</li>
+            </ul>
+        </div>
+        <div class="guideline-section">
+            <h2>Contact Us</h2>
+            <p>If you have any questions or need assistance, please contact us at <a href="mailto:mjalfoudari@workflow.mew.gov.kw">mjalfoudari@workflow.mew.gov.kw</a>.</p>
+        </div>
+    </div>
+    <footer>
+        <p class="footer-text">Designed by <a href="#">Eng. Mohammad Alfoudari</a> | Managed by <a href="#">Eng. Abdulrahman Aljalahmah</a></p>
+    </footer>
+</body>
+</html>

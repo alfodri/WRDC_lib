@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">Library</a>
+            <div class="navbar-nav ml-auto">
+                <a class="nav-link" href="{{ url_for('admin.publications') }}">Publications</a>
+                <a class="nav-link" href="{{ url_for('admin.authors') }}">Authors</a>
+                <a class="nav-link" href="{{ url_for('admin.users') }}">Users</a>
+                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1>Admin Dashboard</h1>
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Publications</h5>
+                        <h2>{{ stats.total_publications }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Authors</h5>
+                        <h2>{{ stats.total_authors }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Users</h5>
+                        <h2>{{ stats.total_users }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h3>Recent Publications</h3>
+                <ul class="list-group">
+                    {% for pub in stats.recent_publications %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('main.view_pdf', publication_id=pub._id) }}">{{ pub.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h3>Recent Authors</h3>
+                <ul class="list-group">
+                    {% for author in stats.recent_authors %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('main.author_info', author_id=author._id) }}">{{ author.name }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

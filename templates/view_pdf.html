@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ publication.title }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa; /* Light gray background */
+            padding-top: 20px; /* Add some space from the top */
+            position: relative; /* Position the body relatively */
+        }
+
+        h1 {
+            font-size: 2.5rem; /* Increase font size for title */
+            margin-bottom: 30px; /* Add some space below the title */
+            text-align: center; /* Center align the title */
+        }
+
+        .author-info {
+            text-align: center; /* Center align the author info */
+            margin-top: 30px; /* Add some space above the author info */
+        }
+
+        .author-info img {
+            border-radius: 50%; /* Make the image round */
+            width: 150px; /* Set the width of the image */
+            height: 150px; /* Set the height of the image */
+            margin-bottom: 15px; /* Add some space below the image */
+            display: block; /* Center the image horizontally */
+            margin-left: auto; /* Center the image horizontally */
+            margin-right: auto; /* Center the image horizontally */
+        }
+
+        .author-details {
+            text-align: center; /* Center align the author details */
+            margin-top: 10px; /* Add some space above the author details */
+        }
+
+        #pdf-viewer {
+            margin-top: 50px; /* Adjust margin top to avoid overlapping */
+            height: 1100px; /* Set the height of the PDF viewer */
+        }
+
+        .btn {
+            font-size: 1.2rem; /* Increase font size for buttons */
+            margin-top: 30px; /* Add some space above the button */
+            display: block; /* Make the button a block element */
+            margin-left: auto; /* Center the button horizontally */
+            margin-right: auto; /* Center the button horizontally */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>{{ publication.title }}</h1>
+        <div class="author-info">
+            {% if publication.author_image %}
+            <img src="{{ url_for('static', filename='uploads/authors/' + publication.author_image) }}" alt="{{ publication.author }}">
+            {% endif %}
+            <div class="author-details">
+                <p><strong>Author:</strong> {{ publication.author }}</p>
+                <p><strong>Published Date:</strong> {{ publication.publish_date | format_date }}</p>
+            </div>
+        </div>
+        <div id="pdf-viewer">
+            <embed src="{{ pdf_url }}" type="application/pdf" width="100%" height="100%">
+        </div>
+        <div class="mt-4">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Library</a>
+        </div>
+    </div>
+</body>
+</html>

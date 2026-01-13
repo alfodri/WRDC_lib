@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Author</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Edit Author</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="author_name">Author Name</label>
+                <input type="text" class="form-control" id="author_name" name="author_name" value="{{ author.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="author_picture">Author Picture (leave empty to keep current)</label>
+                <input type="file" class="form-control" id="author_picture" name="author_picture" accept="image/*">
+                {% if author.image %}
+                <small class="form-text text-muted">Current: {{ author.image }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="author_profile">Profile</label>
+                <textarea class="form-control" id="author_profile" name="author_profile" rows="2" required>{{ author.profile }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="author_education">Education</label>
+                <textarea class="form-control" id="author_education" name="author_education" rows="2" required>{{ author.education }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="author_experience">Experience and Internships</label>
+                <textarea class="form-control" id="author_experience" name="author_experience" rows="2" required>{{ author.experience }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="author_skills">Technical Skills</label>
+                <textarea class="form-control" id="author_skills" name="author_skills" rows="2" required>{{ author.skills }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Author</button>
+            <a href="{{ url_for('admin.authors') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
